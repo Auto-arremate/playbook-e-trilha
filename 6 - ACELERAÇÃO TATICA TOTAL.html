@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aceleração Tática Total</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Estilização Base e Paleta de Cores */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f5f7; /* stone-100 */
+            color: #334155;
+        }
+        .font-sora { font-family: 'Sora', sans-serif; }
+
+        /* Cores de Marca */
+        .text-autoarremate { color: #16a34a; } /* green-600 */
+        .bg-autoarremate { background-color: #16a34a; }
+        .border-autoarremate { border-color: #16a34a; }
+        
+        .text-arremaq { color: #ea580c; } /* orange-600 */
+        .bg-arremaq { background-color: #ea580c; }
+        .border-arremaq { border-color: #ea580c; }
+
+        /* Componentes da UI */
+        .category-tab.active {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .view-tab.active {
+            background-color: #0284c7; /* sky-600 */
+            color: white;
+            box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.1);
+        }
+        .view-tab {
+             transition: all 0.3s ease-in-out;
+             border-radius: 0.75rem; /* For View tabs */
+        }
+
+        /* Estilo para Accordions (details/summary) */
+        details summary {
+            list-style: none;
+            cursor: pointer;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        details .arrow-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        details[open] .arrow-icon {
+            transform: rotate(90deg);
+        }
+        
+        .fade-in {
+            animation: fadeInAnimation 0.5s ease-in-out;
+        }
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilo do Modal de IA */
+        #ai-modal-overlay.hidden { display: none; }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #0284c7; /* sky-600 */
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para o conteúdo específico do playbook */
+        .icp-features-card { /* Updated styles for individual ICP feature cards */
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            padding-left: 0;
+            background-color: #ffffff; /* White background for individual cards */
+            border: 1px solid #e2e8f0; /* Light border */
+            border-radius: 1.25rem; /* Enhanced rounded corners */
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* subtle shadow */
+            transition: all 0.3s ease-in-out;
+        }
+        .icp-features-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+         .icp-features-card .emoji {
+            font-size: 1.8rem; /* Larger emoji */
+            margin-right: 1rem;
+            flex-shrink: 0; /* Prevent emoji from shrinking */
+        }
+         .icp-features-card div {
+            flex-grow: 1;
+        }
+        .icp-features-card strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: #334155;
+        }
+        .icp-features-card span {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #475569;
+        }
+
+
+        .persona-profile-card ul li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            padding-left: 0;
+        }
+         .persona-profile-card ul li::before {
+             content: attr(data-emoji);
+             font-size: 1.1rem;
+             margin-right: 0.75rem;
+             margin-top: 0.125rem;
+             position: static;
+             display: inline-block;
+           }
+        
+        .cadencia-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+        .cadencia-table th, .cadencia-table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        .cadencia-table th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+         .cadencia-table td pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f9fafb;
+            padding: 0.5rem;
+            border-radius: 0.5rem; /* Rounded pre */
+            font-size: 0.75rem;
+           }
+
+        /* Estilo para os cartões de persona clicáveis */
+        .persona-clickable-card {
+            cursor: pointer;
+            transition: all 0.3s ease-in-out; /* Aumenta a transição para a animação */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border-radius: 1.25rem; /* Enhanced rounded corners */
+        }
+        .persona-clickable-card:hover {
+            transform: translateY(-8px) scale(1.02); /* Mais destaque no hover */
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15); /* Sombra mais intensa */
+        }
+        .persona-clickable-card.active-persona {
+            border-color: #0284c7; /* sky-600 */
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.5), 0 15px 30px rgba(0,0,0,0.2); /* Borda de destaque e sombra */
+        }
+        /* General rounded corners for various elements */
+        .rounded-full-icon {
+            border-radius: 9999px; /* Tailwind's rounded-full */
+        }
+
+        /* Specific overrides for persona-profile-card sub-elements */
+        .persona-profile-card,
+        .persona-profile-card .grid > div {
+            border-radius: 1rem; /* More rounded for sections inside persona profile */
+        }
+
+        /* Accordion items */
+        details.bg-stone-50.rounded-lg.border {
+            border-radius: 1rem; /* Rounded corners for accordion containers */
+        }
+        details .p-3.border.rounded-md {
+            border-radius: 0.75rem; /* Rounded corners for example boxes */
+        }
+    </style>
+</head>
+<body class="text-stone-800">
+
+    <div class="container mx-auto p-4 md:p-6 lg:p-8">
+
+        <!-- Cabeçalho Principal -->
+        <header class="text-center mb-8">
+            <h1 class="font-sora text-4xl md:text-5xl font-extrabold text-stone-900">
+                🚀 <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-green-500">Aceleração Tática Total</span> 🚀
+            </h1>
+            <p class="text-stone-600 mt-3 text-lg max-w-3xl mx-auto">Seu centro de comando para conectar, qualificar e converter. ✨ Todas as estratégias, para todas as personas, em um só lugar.</p>
+        </header>
+
+        <!-- Navegação Principal por Categoria de Persona -->
+        <nav class="bg-white/70 backdrop-blur-lg p-3 rounded-xl shadow-md mb-8 flex flex-col sm:flex-row justify-center items-center gap-3 sticky top-4 z-40" id="persona-category-nav">
+            <h2 class="text-lg font-semibold text-stone-700 mr-4 hidden md:block">Categorias:</h2>
+            <button data-category="autoarremate_brand" class="category-tab w-full sm:w-auto font-bold py-3 px-5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"><i class="fas fa-car-side"></i> Auto Arremate</button>
+            <button data-category="arremaq_brand" class="category-tab w-full sm:w-auto font-bold py-3 px-5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"><i class="fas fa-tractor"></i> Arremaq</button>
+        </nav>
+
+        <!-- Área de Conteúdo Dinâmico -->
+        <main id="content-area-aceleracao" class="w-full">
+            <!-- Conteúdo será renderizado aqui pelo JS -->
+        </main>
+    </div>
+    
+    <!-- Modal para o Assistente de IA -->
+    <div id="ai-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 hidden justify-center items-center p-4 z-50">
+        <div id="ai-modal" class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b rounded-t-2xl">
+                <h3 class="font-sora text-xl font-bold text-sky-800" id="ai-modal-title">✨ Assistente de Vendas IA</h3>
+                <button id="ai-modal-close" class="text-stone-500 hover:text-stone-800 text-2xl">&times;</button>
+            </div>
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="space-y-4">
+                    <label for="ai-prompt-input" class="block font-semibold text-stone-700">✍️ Descreva o cenário ou a pergunta para a IA:</label>
+                    <textarea id="ai-prompt-input" rows="4" class="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-sky-500 transition" placeholder="Ex: Preciso de um e-mail de primeiro contato para o Marcelo, focando na dor de baixa rentabilidade dos seminovos."></textarea>
+                    <button id="ai-generate-btn" class="w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-700 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-magic"></i> Gerar Resposta
+                    </button>
+                </div>
+                <div class="mt-6 border-t pt-4">
+                    <h4 class="font-semibold text-stone-700 mb-2">📜 Resposta da IA:</h4>
+                    <div id="ai-modal-content" class="bg-stone-50 p-4 rounded-lg min-h-[150px] whitespace-pre-wrap overflow-y-auto">
+                        <div id="ai-initial-message" class="text-stone-500">🪄 Aguardando seu comando...</div>
+                        <div id="ai-loader" class="hidden flex flex-col items-center justify-center text-center">
+                            <div class="spinner"></div>
+                            <p class="mt-4 text-stone-600">🔮 Estou consultando os oráculos... Gerando a melhor estratégia para você.</p>
+                        </div>
+                        <div id="ai-result-text" class="hidden"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t flex justify-end rounded-b-2xl">
+                <button id="copy-ai-result-btn" class="bg-stone-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-stone-700 transition-colors flex items-center gap-2 disabled:bg-stone-400" disabled>
+                    <i class="fas fa-copy"></i> Copiar Texto
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pool de emojis para garantir variedade
+            const emojiPool = [
+                '✨', '🚀', '🎯', '💡', '💰', '⚙️', '🤝', '📈', '🏆', '🔄', '🛡️', '📊', '⏱️', '📜', '📣', '🌐', '📞', '📧', '✍️', '🔎', '💡', '🌟', '🔑', '✅', '📚', '🛠️', '🫂', '🧑‍💻', '👨‍💼', '👩‍💼', '👷', '🧑‍🌾', '👨‍✈️', '🐆', '⚡', '🧠', '💼', '📊', '🤝', '⏰', '🗺️', '🏰', '⚔️', '🛡️', '🔮', '✨', '💎', '📈', '🌐', '⚙️', '💸', '⏳', '📉', '🎯', '🏆', '🔄', '💡', '🗣️', '📱', '📋', '🔔', '🚀', '🔗', '🌫️', '🤷', '🌍', '💻', '🔒', '📦', '🚚'
+            ];
+            let usedEmojis = [];
+
+            // Função para obter um emoji único
+            function getUniqueEmoji() {
+                if (emojiPool.length === usedEmojis.length) {
+                    usedEmojis = []; // Reset if all emojis are used
+                }
+                let emoji;
+                do {
+                    emoji = emojiPool[Math.floor(Math.random() * emojiPool.length)];
+                } while (usedEmojis.includes(emoji));
+                usedEmojis.push(emoji);
+                return emoji;
+            }
+
+            // Função para gerar uma sequência de dias para cadências
+            function generateCadenceSteps(numDays, personaName, personaRole) {
+                const steps = [];
+                const activitiesPerDay = 2; // Fixed 2 activities per day
+                const totalActivities = numDays * activitiesPerDay;
+
+                const baseActivityTemplates = [
+                    // Activity 1: Email / WhatsApp / LinkedIn
+                    (day, activityIndex) => {
+                        const channel = day % 3 === 0 ? 'Email' : (day % 3 === 1 ? 'WhatsApp' : 'LinkedIn');
+                        const phase = ['AIDA', 'SPIN', 'SNAP'][Math.floor(Math.random() * 3)];
+                        const objective = `Apresentar valor inicial para ${personaName} - Atividade ${activityIndex + 1}`;
+                        const script = `Olá ${personaName}, espero que esteja bem! Gostaria de compartilhar um insight sobre como ${personaRole}s estão otimizando [Área de Dor da Persona]. Posso enviar um artigo/vídeo rápido?`;
+                        const crm = `Registrar atividade de ${channel} para ${personaName}.`;
+                        const automacao = `Automatizar envio de ${channel}.`;
+                        const metricas = `Taxa de abertura/visualização de ${channel}.`;
+                        return { day, channel, phase, objective, script, crm, automacao, metricas };
+                    },
+                    // Activity 2: Call / Follow-up / Research
+                    (day, activityIndex) => {
+                        const channel = day % 2 === 0 ? 'Ligação' : 'CRM/Pesquisa';
+                        const phase = ['SPIN', 'SNAP'][Math.floor(Math.random() * 2)];
+                        const objective = `Qualificar necessidade de ${personaName} - Atividade ${activityIndex + 1}`;
+                        const script = `[Seu Nome] aqui. Conseguimos conversar brevemente sobre os desafios que ${personaName} enfrenta em [Área de Dor da Persona]?`;
+                        const crm = `Atualizar status do lead, agendar próxima interação.`;
+                        const automacao = `Definir lembrete para follow-up.`;
+                        const metricas = `Taxa de conexão/qualificação.`;
+                        return { day, channel, phase, objective, script, crm, automacao, metricas };
+                    }
+                ];
+
+                for (let day = 0; day < numDays; day++) {
+                    for (let i = 0; i < activitiesPerDay; i++) {
+                        steps.push(baseActivityTemplates[i](day, i));
+                    }
+                }
+                return steps;
+            }
+
+
+            // ===================================================================================
+            // 🏰 GRIMÓRIO DO PLAYBOOK - BANCO DE DADOS
+            // ✨ Todo o conteúdo textual e estruturado está centralizado aqui.
+            // ===================================================================================
+            const playbookData = {
+                autoarremate_brand: {
+                    brandColor: 'autoarremate', // Verde
+                    title: "Auto Arremate",
+                    icp: {
+                        title: '🌟 ICP AUTO ARREMATE® 🌟',
+                        features: [
+                            { emoji: '🏢', title: 'Tipo de Reino', text: 'Concessionárias de veículos (todas as bandeiras e estandartes), grandes clãs de concessionárias, frotas de locadoras com vastos exércitos de veículos, e renomados mercadores/lojistas de veículos seminovos e usados.' },
+                            { emoji: '📊', title: 'Volume de Comércio (Negócios)', text: 'Reinos com alto volume de aquisição e venda de veículos, sempre em busca de otimizar o giro de seus tesouros (estoque) e a prosperidade (rentabilidade).' },
+                            { emoji: '💻', title: 'Afinidade com a Alquimia Digital (Tecnologia)', text: 'Reinos que já utilizam ou estão dispostos a desbravar soluções digitais para otimizar seus rituais de avaliação, gestão e comercialização de veículos.' },
+                            { emoji: '📈', title: 'Busca pela Eficiência e Prosperidade', text: 'Aliados que anseiam por reduzir custos operacionais desnecessários, aumentar a margem de lucro em cada transação de veículos e acelerar o ciclo de suas conquistas comerciais.' },
+                            { emoji: '🌐', title: 'Visão Estratégica de Mercado Ampla', text: 'Reinos que compreendem o poder de um marketplace B2B para expandir seus domínios e ter acesso a um inventário diversificado de oportunidades.' }
+                        ]
+                    },
+                    personas: [
+                        {
+                            id: 'marcelo',
+                            name: 'Marcelo Nascimento',
+                            role: 'Gerente/Dono de Concessionária',
+                            img: 'https://i.imgur.com/odoe4Qx.jpeg',
+                            description: 'Experiente e focado em resultados, busca rentabilidade e eficiência.',
+                            objectives: ['📈 Expandir vendas', '🏆 Maximizar lucro', '🔄 Otimizar giro', '🛠️ Aprimorar avaliação'],
+                            pains: ['💸 Precificação incorreta', '⏳ Avaliações lentas', '📉 Baixa rentabilidade', '🎯 Pressão por metas'],
+                            qualification: [
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: '📜 Gestão de Estoque', situacao: '“Como gerenciam o fluxo de cadastro e precificação hoje?”', problema: '“Qual o principal problema da falta de padrão na avaliação?”', implicacao: '“Qual a implicação disso na margem final?”', necessidade: '“Se houvesse uma forma de garantir avaliações precisas, que necessidade isso resolveria?”' },
+                                    { title: '⏳ Tempo de Pátio', situacao: '“Quanto tempo, em média, um veículo fica parado no seu pátio antes de ser vendido?”', problema: '“Qual o impacto financeiro de manter um estoque parado por mais tempo do que o ideal?”', implicacao: '“Como a falta de giro rápido afeta a capacidade de renovar o estoque e a oferta de veículos novos?”', necessidade: '“Se fosse possível reduzir o tempo de pátio em X dias, que impacto isso teria na sua lucratividade e fluxo de caixa?”' },
+                                    { title: '📊 Análise de Dados', situacao: '“Quais ferramentas ou processos vocês utilizam hoje para analisar o desempenho da área de seminovos?”', problema: '“Qual a maior dificuldade em obter insights acionáveis sobre a performance de vendas e margens?”', implicacao: '“Como a falta de dados precisos e em tempo real influencia suas decisões de compra e precificação?”', necessidade: '“Se você tivesse um dashboard completo e intuitivo para seminovos, que tipo de decisão você tomaria com mais segurança?”' }
+                                ]},
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: '⏰ Follow-up Lento', atencao: '“Vimos que concessionárias perdem até 15% das vendas por demora no follow-up.”', interesse: '“Nossa plataforma automatiza os primeiros contatos, garantindo resposta em minutos.”', desejo: '“Imagine recuperar essas vendas perdidas e bater a meta com folga.”', acao: '“Qual o próximo passo para ver uma demonstração?”' },
+                                    { title: '💰 Lucro Reduzido', atencao: '“Muitas concessionárias deixam dinheiro na mesa por precificar seminovos de forma inconsistente.”', interesse: '“Nossa ferramenta de avaliação garante a precificação ideal, maximizando seu lucro em cada veículo.”', desejo: '“Tenha a certeza de que está comprando e vendendo pelo valor certo, aumentando sua margem final.”', acao: '“Podemos fazer uma simulação do potencial de lucro para o seu estoque atual?”' },
+                                    { title: '🌐 Alcance Limitado', atencao: '“Seus veículos seminovos estão sendo vistos apenas por uma fração dos potenciais compradores?”', interesse: '“Nosso marketplace B2B conecta você a milhares de lojistas ávidos por veículos em todo o Brasil.”', desejo: '“Amplie drasticamente suas oportunidades de venda e escoe o estoque em tempo recorde.”', acao: '“Vamos explorar o poder do nosso marketplace em uma breve conversa?”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: '🎯 Lucratividade', simples: '“Para ser Simples: nossa plataforma tem um valor…”', inestimavel: '“…iNestimável ao otimizar seu repasse B2B…”', alinhar: '“…e se Alinha com sua meta de aumentar a lucratividade.”', priorizar: '“É Prioritário testar para não perder oportunidades?”' },
+                                    { title: '🔄 Giro de Estoque', simples: '“Nossa solução oferece um processo direto para acelerar o giro do seu estoque.”', inestimavel: '“…iNestimável para liberar capital e evitar a depreciação de veículos parados…”', alinhar: '“…e se Alinha com a urgência de manter seu pátio sempre movimentado e lucrativo.”', priorizar: '“Acelerar o giro do seu estoque é uma Prioridade máxima para sua gestão agora?”' },
+                                    { title: '🛠️ Padronização', simples: '“Implementar avaliações padronizadas é fácil com nossa tecnologia intuitiva.”', inestimavel: '“…iNestimável para garantir a consistência e a confiança nas suas compras e vendas de seminovos…”', alinhar: '“…e se Alinha diretamente com a necessidade de profissionalizar e otimizar toda a operação de seminovos.”', priorizar: '“A padronização e eficiência na avaliação são uma Prioridade para a sua concessionária?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "O custo é muito alto.", a: "Entendo a preocupação. Por isso, focamos no ROI. Se a plataforma reduzir o tempo de pátio em apenas 2 dias, o investimento se paga. Quer fazer uma simulação rápida?", why: "Foca no retorno sobre o investimento (ROI), convertendo o custo em benefício financeiro. Oferece ação para provar o valor.", focus: "ROI e Agilidade." },
+                                { q: "Minha equipe não tem tempo para aprender.", a: "Essa é a melhor parte. A plataforma vai libertar o tempo da sua equipe. O onboarding leva menos de 60 minutos.", why: "Aborda a objeção de tempo e dificuldade. Minimiza o esforço de aprendizado e destaca o ganho de tempo futuro.", focus: "Eficiência da Equipe." },
+                                { q: "Já usamos um CRM/ERP.", a: "Ótimo! Não estamos aqui para substituir, mas para potencializar. Integramos perfeitamente para otimizar o fluxo de seminovos, onde somos especialistas.", why: "Reafirma a funcionalidade do sistema atual do cliente e posiciona a solução como complemento, não concorrente. Destaca a especialização.", focus: "Complementaridade e Especialização." },
+                                { q: "Meu processo manual funciona.", a: "Concordo que se funciona, não se mexe. Mas e se pudesse funcionar melhor e gerar mais lucro? O mercado está cada vez mais competitivo.", why: "Valida a abordagem do cliente, mas questiona o status quo. Sugere que 'funcionar' não é o mesmo que 'otimizar' em um mercado dinâmico.", focus: "Otimização e Competitividade." },
+                                { q: "Preciso falar com a diretoria para aprovar.", a: "Entendo. Que informações seriam cruciais para apresentar à diretoria? Posso ajudar a montar um business case focado no impacto na rentabilidade e giro, com dados do mercado.", why: "Oferece suporte na apresentação interna. Foca nos pontos de interesse da diretoria (rentabilidade, dados).", focus: "Apoio à Decisão." },
+                                { q: "Estamos em um momento de corte de custos.", a: "Exatamente por isso. Em momentos de corte, otimizar processos e maximizar receita se torna ainda mais vital. Nossa solução não é um custo, mas um investimento que gera economia e lucro imediatos.", why: "Transforma a objeção de custo em oportunidade. Posiciona a solução como uma ferramenta para alcançar os objetivos de corte de custos, não como um gasto adicional.", focus: "Economia e Lucro Imediato." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (O Herói Decidido)", description: "Cliente com dor latente e urgência. Foco em agilidade e prova de valor. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'Marcelo Nascimento', 'Gerente de Vendas') },
+                                '60': { title: "Jornada de 60 Dias (O Sábio Cauteloso)", description: "Reconhece o problema, mas não a urgência. Precisa de mais dados. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'Marcelo Nascimento', 'Gerente de Vendas') },
+                                '90': { title: "Jornada de 90 Dias (A Semente da Árvore)", description: "Não vê como prioridade. Objetivo é educar e construir um business case. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'Marcelo Nascimento', 'Gerente de Vendas') }
+                            }
+                        },
+                        {
+                            id: 'lucas',
+                            name: 'Lucas Silva',
+                            role: 'Comprador/Gerente de Seminovos',
+                            img: 'https://i.imgur.com/0gNvzob.jpeg',
+                            description: 'Prático e analítico, responsável por adquirir os melhores veículos.',
+                            objectives: ['💎 Adquirir veículos com potencial', '⚡ Avaliações rápidas', '🛡️ Minimizar riscos', '📊 Estoque atrativo'],
+                            pains: ['⏳ Falta de tempo', '📜 Dificuldade com histórico', '💰 Pressão para comprar bem', '🔧 Necessidade de ferramentas'],
+                            qualification: [
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: 'Processo de Avaliação', situacao: '“Como sua equipe realiza as avaliações de seminovos hoje?”', problema: '“Quais os maiores gargalos ou inconsistências no processo atual de avaliação?”', implicacao: '“Como a demora ou avaliações imprecisas impactam a rentabilidade da revenda?”', necessidade: '“Se houvesse uma forma de padronizar e agilizar as avaliações, que benefício direto isso traria para sua operação?”' },
+                                    { title: '🔍 Confiança na Compra', situacao: '“Como vocês garantem a procedência e a qualidade dos veículos antes de adquiri-los?”', problema: '“Qual o risco de comprar um veículo com histórico oculto ou problemas não identificados na avaliação manual?”', implicacao: '“Como isso afeta a reputação da loja e o custo de reparos inesperados?”', necessidade: '“Se houvesse uma ferramenta que revelasse todo o histórico e laudos do veículo, que segurança adicional isso proporcionaria nas suas compras?”' },
+                                    { title: '📈 Potencial de Venda', situacao: '“Como você identifica os veículos que têm maior potencial de giro e lucro para o seu estoque?”', problema: '“Qual o problema em adquirir carros que demoram a sair ou que precisam de muita margem para compensar?”', implicacao: '“Como isso impacta a liquidez do capital e a capacidade de investir em outros veículos mais rentáveis?”', necessidade: '“Se você tivesse dados de mercado em tempo real e insights sobre o potencial de cada veículo, que tipo de decisão de compra isso otimizaria?”' }
+                                ]},
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: 'Histórico Veicular', atencao: '“Você sabia que veículos com histórico incompleto podem gerar prejuízos de até 20% na revenda?”', interesse: '“Nossa plataforma integra dados de histórico, revelando todas as informações importantes antes da compra.”', desejo: '“Imagine ter total segurança nas suas aquisições e evitar surpresas desagradáveis.”', acao: '“Que tal uma demonstração de como desvendamos o passado de cada carro?”' },
+                                    { title: '⚡ Avaliações Rápidas', atencao: '“A demora na avaliação faz você perder excelentes oportunidades de compra?”', interesse: '“Com o RaioX®, suas avaliações são padronizadas e concluídas em minutos, agilizando seu processo.”', desejo: '“Conclua mais avaliações por dia, adquira mais carros de qualidade e mantenha seu estoque sempre renovado.”', acao: '“Vamos agilizar seu dia a dia com uma breve demonstração do RaioX® em ação?”' },
+                                    { title: '💰 Comprar Bem', atencao: '“A pressão para comprar bem é constante. Você sente que poderia ter mais dados para negociar?”', interesse: '“Oferecemos dados de precificação de mercado em tempo real, permitindo que você negocie com mais poder.”', desejo: '“Tenha a certeza de que está sempre fazendo a melhor compra, com informações que ninguém mais tem.”', acao: '“Podemos te mostrar como acessar e usar esses dados valiosos em uma breve reunião?”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: 'Eficiência na Compra', simples: '“Nossa solução otimiza seu tempo na avaliação e compra, com poucos cliques.”', inestimavel: '“…iNestimável para quem precisa de agilidade e precisão para formar um estoque competitivo…”', alinhar: '“…e se Alinha perfeitamente com sua meta de adquirir veículos de alta lucratividade.”', priorizar: '“A otimização do seu tempo e lucro é uma Prioridade para você agora?”' },
+                                    { title: '🛡️ Redução de Risco', simples: '“Acesso fácil a histórico completo e laudos detalhados para cada veículo.”', inestimavel: '“…iNestimável para minimizar o risco de compras problemáticas e proteger a reputação da loja…”', alinhar: '“…e se Alinha com a busca por segurança e confiança em todas as transações de seminovos.”', priorizar: '“Minimizar riscos na aquisição de veículos é uma Prioridade para o seu departamento?”' },
+                                    { title: '📈 Aumento de Estoque', simples: '“Com nossa plataforma, você acessa mais fontes de veículos de qualidade.”', inestimavel: '“…iNestimável para expandir e diversificar o seu estoque de seminovos de forma eficiente…”', alinhar: '“…e se Alinha com o objetivo de ter sempre os carros mais procurados pelos seus clientes.”', priorizar: '“Ter um estoque sempre atrativo e com alta demanda é uma Prioridade para a sua meta de vendas?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "Já usamos o sistema da montadora.", a: "Entendo. Nosso foco é complementar. Somos especialistas no fluxo de seminovos, integrando com seu sistema para que você tenha o melhor dos dois mundos, sem retrabalho.", why: "Valida a ferramenta existente e se posiciona como um complemento especializado, não um substituto. Foca na integração e expertise.", focus: "Integração e Otimização." },
+                                { q: "Meu tempo é curto para aprender algo novo.", a: "Acreditamos na simplicidade. Nosso onboarding é rápido e a interface intuitiva. Em menos de uma hora você estará usando o RaioX® para avaliar com eficiência.", why: "Minimiza o esforço e tempo de aprendizado. Destaca a rapidez e o ganho de eficiência a curto prazo.", focus: "Agilidade no Aprendizado." },
+                                { q: "Acha que meu pessoal não vai se adaptar.", a: "Nossa plataforma é pensada para o dia a dia da revenda. Fazemos treinamentos e damos suporte contínuo para garantir a melhor adaptação da sua equipe, transformando-os em especialistas em avaliação.", why: "Garante suporte e treinamento. Transforma a 'dificuldade' em 'capacitação' para a equipe.", focus: "Capacitação da Equipe." },
+                                { q: "Não vejo a necessidade de mais uma ferramenta.", a: "Nossa ferramenta é diferente, Lucas. Ela foca em resolver especificamente a dor da avaliação inconsistente e da falta de dados de histórico, problemas que impactam diretamente sua margem. Ela não é 'mais uma', é a solução para um ponto crítico.", why: "Diferencia a ferramenta, focando na resolução de uma dor específica e de alto impacto para o cliente.", focus: "Solução de Dor Específica." },
+                                { q: "O custo benefício não me parece claro.", a: "Vamos simular o impacto direto na sua operação. Quanto vale uma avaliação 100% precisa e a certeza de evitar um carro com histórico problemático? Nossos clientes relatam recuperação de X% do valor em compras.", why: "Converte o benefício em valor financeiro tangível. Oferece dados concretos de sucesso de outros clientes.", focus: "ROI Quantificável." },
+                                { q: "O processo manual já é rotineiro e funciona.", a: "Sim, e a rotina é importante. Mas se pudéssemos automatizar a parte manual e liberar sua equipe para focar no que realmente importa: negociar? Pense em agilidade e menos erros. O mercado exige isso.", why: "Reconhece o valor da rotina, mas propõe uma evolução. Foca em liberar tempo e melhorar a qualidade do trabalho.", focus: "Automação e Foco Estratégico." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (O Caçador Eficiente)", description: "Lucas busca agilidade e dados precisos. Foco em ferramentas. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'Lucas Silva', 'Comprador/Gerente de Seminovos') },
+                                '60': { title: "Jornada de 60 Dias (O Estrategista de Estoque)", description: "Lucas busca otimizar a aquisição e o estoque. Foco em resultados. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'Lucas Silva', 'Comprador/Gerente de Seminovos') },
+                                '90': { title: "Jornada de 90 Dias (O Visionário da Revenda)", description: "Lucas busca inovações e parcerias estratégicas. Foco em tendências. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'Lucas Silva', 'Comprador/Gerente de Seminovos') }
+                            }
+                        },
+                        {
+                            id: 'leticia',
+                            name: 'Leticia Morais',
+                            role: 'Proprietária de Loja',
+                            img: 'https://i.imgur.com/xvH943K.jpeg',
+                            description: 'Ágil e conectada, sempre busca as melhores oportunidades de compra.',
+                            objectives: ['🛒 Achar veículos de qualidade', '💎 Acesso a inventário diversificado', '🤝 Forjar alianças', '⏱️ Agilizar aquisição'],
+                            pains: ['📉 Dificuldade de encontrar estoque', '⏳ Perda de tempo', '🚫 Falta de transparência', '💸 Concorrência acirrada'],
+                            qualification: [
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: 'Dificuldade de Estoque', atencao: '“A dificuldade em encontrar bons carros para revenda está matando sua margem?”', interesse: '“Com nosso marketplace B2B, você acessa milhares de veículos de concessionárias e locadoras.”', desejo: '“Imagine ter sempre o estoque ideal, sem perder tempo procurando e com lucro garantido.”', acao: '“Quer ver como é fácil encontrar seu próximo carro ideal?”' },
+                                    { title: '🚀 Oportunidades Perdidas', atencao: '“Quantas vezes você deixou de comprar um excelente seminovo por não saber da oferta a tempo?”', interesse: '“Nossos alertas personalizados te avisam sobre as melhores oportunidades assim que surgem no mercado.”', desejo: '“Nunca mais perca um negócio lucrativo e esteja sempre à frente da concorrência.”', acao: '“Vamos configurar seus alertas para você começar a receber as melhores ofertas hoje mesmo?”' },
+                                    { title: '🤝 Negociação Segura', atencao: '“Você tem receio de negociar com fornecedores desconhecidos e sem garantia?”', interesse: '“Garantimos total transparência e segurança nas negociações, com informações verificadas e processos claros.”', desejo: '“Compre com tranquilidade, sabendo que está fazendo um negócio justo e protegido.”', acao: '“Explore nosso marketplace e veja a segurança que oferecemos em cada anúncio.”' }
+                                ]},
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: 'Perda de Tempo', situacao: '“Quanto tempo sua equipe gasta hoje visitando pátios para encontrar bons carros?”', problema: '“Qual o principal problema dessa busca manual e demorada por estoque?”', implicacao: '“Como a perda de tempo e as oportunidades perdidas impactam o volume de vendas da sua loja?”', necessidade: '“Se houvesse uma forma de centralizar e agilizar a busca por veículos, que necessidade isso resolveria para seu negócio?”' },
+                                    { title: '📊 Variação de Preço', situacao: '“Como você se certifica de que está comprando pelo preço mais justo e competitivo no mercado?”', problema: '“Qual a dificuldade em comparar preços e condições de diferentes fornecedores para o mesmo tipo de veículo?”', implicacao: '“Como a falta de uma visão clara do mercado pode afetar suas margens de lucro na revenda?”', necessidade: '“Se você tivesse acesso a um comparativo de mercado completo para cada veículo, que decisões de compra você otimizaria?”' },
+                                    { title: '🔗 Dificuldade com Fornecedores', situacao: '“Quais são os maiores desafios ao lidar com múltiplos fornecedores para compor seu estoque?”', problema: '“Qual o principal problema em ter que gerenciar relacionamento e comunicação com tantos parceiros diferentes?”', implicacao: '“Como isso impacta a agilidade e a fluidez do seu processo de aquisição de veículos?”', necessidade: '“Se você pudesse centralizar a comunicação e as negociações com fornecedores em uma única plataforma, que necessidade isso resolveria para sua gestão?”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: 'Transparência e Confiança', simples: '“Nossa plataforma te dá acesso rápido a informações completas dos veículos.”', inestimavel: '“…iNestimável para garantir compras seguras e evitar surpresas desagradáveis…”', alinhar: '“…e se Alinha com sua busca por negociações transparentes e lucrativas.”', priorizar: '“Ter total transparência nas informações dos veículos é uma Prioridade para você agora?”' },
+                                    { title: '🚀 Agilidade na Aquisição', simples: '“Comprar um seminovo de qualidade é rápido e fácil em nosso marketplace.”', inestimavel: '“…iNestimável para quem precisa de um estoque sempre atualizado e competitivo…”', alinhar: '“…e se Alinha perfeitamente com a dinâmica do mercado de revenda, onde cada minuto conta.”', priorizar: '“A agilidade na aquisição de veículos é uma Prioridade para o sucesso da sua loja?”' },
+                                    { title: '💰 Maximização de Lucro', simples: '“Identificar veículos com alto potencial de lucro é facilitado por nossos filtros e dados.”', inestimavel: '“…iNestimável para garantir que cada compra contribua significativamente para sua margem…”', alinhar: '“…e se Alinha com o objetivo central de toda loja de seminovos: vender mais e com maior lucratividade.”', priorizar: '“Maximizar o lucro em cada transação é uma Prioridade fundamental para sua loja?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "O custo é muito alto.", a: "Entendo. Mas pense no custo de um carro parado ou de uma compra ruim. Nosso acesso ao marketplace te dá mais giro e lucro, pagando-se rapidamente com poucas negociações.", why: "Transforma o custo em investimento com retorno rápido. Foca na perda evitada e no ganho potencial.", focus: "ROI e Ganho de Giro." },
+                                { q: "Não tenho tempo para outra plataforma.", a: "Criamos a plataforma para ser ágil e intuitiva. Você encontra, negocia e compra veículos em minutos, economizando o tempo que você perde hoje em buscas dispersas. Nosso onboarding é super rápido.", why: "Contraria a ideia de 'mais uma plataforma' mostrando economia de tempo no uso. Destaca a usabilidade e o onboarding ágil.", focus: "Economia de Tempo e Usabilidade." },
+                                { q: "Prefiro ver o carro pessoalmente.", a: "É essencial! Por isso, nossa plataforma oferece laudos detalhados e histórico completo do veículo, incluindo fotos e vídeos. Você tem todas as informações antes de decidir, e só inspeciona o que realmente interessa e que já foi pré-aprovado digitalmente.", why: "Valida a preferência do cliente, mas mostra como a plataforma otimiza essa necessidade, pré-filtrando e enriquecendo a informação. Reduz a necessidade de visitas improdutivas.", focus: "Otimização da Vistoria." },
+                                { q: "Já tenho meus fornecedores fixos.", a: "Compreendo. Mas e se houvesse uma forma de complementar seus fornecedores, acessar um volume maior e mais diversificado de veículos, e ainda assim com a confiança que você já tem? Nossa plataforma é uma extensão da sua rede.", why: "Sugere complemento, não substituição. Amplia as oportunidades sem descreditar o modelo atual do cliente.", focus: "Ampliação de Rede de Fornecedores." },
+                                { q: "A concorrência online é muito grande.", a: "Sim, e é por isso que estar no lugar certo faz a diferença. Nossa plataforma te dá acesso a um inventário exclusivo de concessionárias e locadoras, onde você compete com inteligência, não só por preço.", why: "Transforma a concorrência em vantagem competitiva. Destaca o acesso a um inventário diferenciado.", focus: "Vantagem Competitiva." },
+                                { q: "Meus clientes preferem carros de um tipo específico.", a: "Ótimo! Nossa plataforma permite filtros avançados e alertas para tipos de veículos muito específicos. Você encontrará exatamente o que seus clientes buscam, sem perder tempo com o que não interessa.", why: "Destaca a capacidade de segmentação e personalização da busca, atendendo a nichos específicos.", focus: "Filtro e Personalização." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (A Caçadora de Tesouros)", description: "Leticia busca oportunidades ágéis e de qualidade. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'Leticia Morais', 'Proprietária de Loja') },
+                                '60': { title: "Jornada de 60 Dias (A Construtora de Alianças)", description: "Leticia busca parcerias confiáveis e fluxo contínuo de estoque. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'Leticia Morais', 'Proprietária de Loja') },
+                                '90': { title: "Jornada de 90 Dias (A Visionária do Varejo)", description: "Leticia busca tendências e vantagem competitiva de longo prazo. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'Leticia Morais', 'Proprietária de Loja') }
+                            }
+                        },
+                        {
+                            id: 'alisson',
+                            name: 'Alisson Rosa',
+                            role: 'Gerente de Ativo / Frota',
+                            img: 'https://i.imgur.com/mXktPTH.jpeg',
+                            description: 'Estrategista que busca a solução ideal para a desmobilização de sua frota.',
+                            objectives: ['💰 Otimizar custo e revenda', '🏆 Garantir qualidade e giro', '🔄 Gerenciar ciclo de vida', '🤝 Ter parceiros confiáveis'],
+                            pains: ['⚙️ Processos complexos', '📉 Depreciação de parados', '📋 Falta de padronização', '📢 Dificuldade de alcançar compradores'],
+                            qualification: [
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: 'Desmobilização de Frota', situacao: '“Como sua locadora gerencia o processo de desmobilização de frotas hoje?”', problema: '“Quais os principais desafios em vender esse alto volume de veículos rapidamente e com lucro?”', implicacao: '“O que acontece com a margem e o custo de pátio quando um veículo demora a ser vendido?”', necessidade: '“Se você tivesse uma plataforma que conectasse sua frota a milhares de compradores de forma eficiente, que impacto isso teria no seu TCO?”' },
+                                    { title: '📉 Gestão de Depreciação', situacao: '“Como vocês acompanham e mitigam a depreciação dos veículos da frota que estão aguardando venda?”', problema: '“Qual o impacto financeiro da depreciação acelerada em veículos parados ou com venda demorada?”', implicacao: '“Como isso afeta o planejamento de renovação da frota e a capacidade de investimento da empresa?”', necessidade: '“Se houvesse uma forma de acelerar drasticamente a venda, reduzindo a depreciação, que benefício direto isso traria para a saúde financeira da sua frota?”' },
+                                    { title: '📋 Padronização de Dados', situacao: '“Quão padronizadas são as informações e avaliações dos veículos que sua locadora coloca à venda?”', problema: '“Qual o desafio em garantir que todos os dados dos veículos sejam apresentados de forma consistente e completa para os potenciais compradores?”', implicacao: '“Como a falta de padronização pode afetar a confiança dos compradores e a velocidade da venda?”', necessidade: '“Se uma plataforma digitalizasse e padronizasse todas as informações dos seus veículos, que necessidade de eficiência e credibilidade isso resolveria?”' }
+                                ]},
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: 'Perda de Valor por Veículo Parado', atencao: '“Cada dia que um veículo da sua frota está parado, ele deprecia, gerando custos ocultos.”', interesse: '“Nossa plataforma otimiza a desmobilização, garantindo giro rápido e minimizando perdas.”', desejo: '“Imagine liberar capital e manter sua frota sempre renovada, sem dores de cabeça.”', acao: '“Quer ver como maximizamos o valor de seus ativos? Agende uma call!”' },
+                                    { title: '📢 Baixo Alcance', atencao: '“Seus veículos desmobilizados estão alcançando todos os potenciais compradores do mercado nacional?”', interesse: '“Nosso marketplace B2B tem milhares de lojistas ávidos por veículos, ampliando seu alcance como nunca antes.”', desejo: '“Venda seu volume de veículos de forma pulverizada, maximizando o valor e o giro de cada uno.”', acao: '“Vamos te mostrar o poder do nosso alcance em uma breve demonstração?”' },
+                                    { title: '⚙️ Processos Manuais', atencao: '“Você está cansado de processos de venda de frota manuais, demorados e burocráticos?”', interesse: '“Nossa plataforma digitaliza todo o ciclo de desmobilização, do anúncio à venda, com poucos cliques.”', desejo: '“Transforme a burocracia em agilidade e foque no que realmente importa para sua gestão de ativos.”', acao: '“Que tal uma demonstração de como simplificamos sua operação?”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: 'Eficiência no Remarketing', simples: '“Digitalize seu processo de remarketing, ganhando agilidade e transparência.”', inestimavel: '“…iNestimável para empresas que lidam com alto volume de desmobilização…”', alinhar: '“…e se Alinha perfeitamente com sua meta de otimizar o custo total de propriedade (TCO).”', priorizar: '“Acelerar a venda dos veículos e reduzir custos é uma Prioridade para sua locadora?”' },
+                                    { title: '💸 Maximização de Vendas', simples: '“Nossa plataforma conecta você diretamente a um vasto mercado de revendedores.”', inestimavel: '“…iNestimável para garantir o melhor preço e a venda rápida de toda sua frota desmobilizada…”', alinhar: '“…e se Alinha com o objetivo de otimizar o retorno sobre cada veículo ao final do ciclo de vida.”', priorizar: '“Maximizar a receita da desmobilização de sua frota é uma Prioridade chave para sua gestão?”' },
+                                    { title: '🤝 Parceiros Confiáveis', simples: '“Tenha acesso a uma rede de compradores e parceiros verificados e de confiança.”', inestimavel: '“…iNestimável para garantir transações seguras e sem dores de cabeça para sua locação…”', alinhar: '“…e se Alinha com a busca por relações comerciais sólidas e transparentes no mercado B2B.”', priorizar: '“A segurança e a confiança nas transações de sua frota são uma Prioridade para sua locadora?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "O valor da plataforma é alto.", a: "Considerando o volume e a depreciação diária de cada veículo parado, nossa solução otimiza seu TCO e pode gerar economias muito maiores que o investimento inicial. Que tal uma simulação detalhada de ROI?", why: "Foca no retorno sobre o investimento (ROI), convertendo o custo em benefício financeiro. Oferece ação para provar o valor.", focus: "ROI e Redução de Depreciação." },
+                                { q: "Já tenho sistemas internos e processos de venda.", a: "Ótimo! Não queremos substituir, mas potencializar. Nossa plataforma integra com seus sistemas e amplia seu alcance de vendas, complementando o que já funciona e adicionando eficiência e transparência.", why: "Reafirma a funcionalidade do sistema atual do cliente e posiciona a solução como complemento, não concorrente. Destaca a integração e a ampliação de alcance.", focus: "Integração e Alcance de Mercado." },
+                                { q: "Já uso leilões ou grandes compradores.", a: "Leilões e grandes compradores são importantes, mas a Auto Arremate complementa oferecendo acesso a uma base pulverizada de milhares de lojistas ávidos por veículos, o que pode gerar maior competitividade e valor para seus ativos.", why: "Posiciona a solução como um complemento estratégico, não um concorrente. Destaca a diversificação e o aumento de competitividade.", focus: "Complemento e Competitividade." },
+                                { q: "Minha equipe de vendas cuida disso internamente.", a: "Sua equipe é valiosa, e nossa plataforma pode liberar o tempo dela. Pense em escalar a desmobilização de frotas sem precisar de mais pessoas. Sua equipe pode focar em negociações mais complexas, enquanto automatizamos o fluxo.", why: "Valoriza a equipe existente e propõe otimização do trabalho, não substituição de pessoal. Foca em escala e foco estratégico.", focus: "Escala e Otimização de Pessoas." },
+                                { q: "Os custos de transporte são um problema ao vender para longe.", a: "Compreendo. Oferecemos uma rede de parceiros logísticos e ferramentas para calcular custos de frete, garantindo que você tenha clareza e controle sobre a logística, vendendo para qualquer lugar do Brasil com confiança.", why: "Oferece solução para um problema logístico. Garante clareza de custos e controle.", focus: "Logística e Controle de Custos." },
+                                { q: "Meus veículos têm alta quilometragem, são difíceis de vender.", a: "Entendo a dificuldade. Em nosso marketplace, temos lojistas especializados em diferentes perfis de veículos. Mesmo com alta km, encontramos o comprador certo que valoriza o ativo pelo que ele é e otimiza o giro para você.", why: "Demonstra conhecimento do mercado e capacidade de encontrar compradores para nichos específicos. Foca no público certo para o ativo.", focus: "Segmentação de Compradores." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (O Desmobilizador Ágil)", description: "Alisson busca soluções rápidas e eficientes para a desmobilização. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'Alisson Rosa', 'Gerente de Ativo / Frota') },
+                                '60': { title: "Jornada de 60 Dias (O Otimizador de TCO)", description: "Alisson busca redução de custos e otimização do ciclo de vida da frota. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'Alisson Rosa', 'Gerente de Ativo / Frota') },
+                                '90': { title: "Jornada de 90 Dias (O Parceiro Estratégico)", description: "Alisson busca parcerias de longo prazo e tendências de mercado. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'Alisson Rosa', 'Gerente de Ativo / Frota') }
+                            }
+                        }
+                    ]
+                },
+                arremaq_brand: {
+                    brandColor: 'arremaq', // Laranja
+                    title: "Arremaq",
+                    icp: {
+                        title: '🌟 ICP ARREMAQ® 🌟',
+                        features: [
+                            { emoji: '🏗️', title: 'Domínio', text: 'Concessionárias de titãs de aço (máquinas agrícolas, de construção), locadoras de equipamentos pesados, grandes mestres construtores, impérios do agronegócio com frotas próprias, e revendedores especializados em máquinas usadas com histórias para contar.' },
+                            { emoji: '⚙️', title: 'Perícia', text: 'Domínios que valorizam avaliações técnicas minuciosas, transparência cristalina no histórico do equipamento e processos de negociação seguros como uma fortaleza.' },
+                            { emoji: '💰', title: 'Foco', text: 'Aliados que lidam com a compra e venda de artefatos de alto valor e buscam otimizar o retorno sobre esses investimentos, transformando metal em ouro puro.' }
+                        ]
+                    },
+                    personas: [
+                        {
+                            id: 'jose',
+                            name: 'José Teodoro',
+                            role: 'Gerente de Ativos (Grande Vendedor)',
+                            img: 'https://i.imgur.com/j8ziMtL.jpeg',
+                            description: 'Mestre da Desmobilização em uma grande construtora ou agronegócio.',
+                            objectives: ['💸 Maximizar valor de revenda', '⏱️ Acelerar processo de venda', '🌐 Encontrar canal com alcance nacional', '🛡️ Garantir processo seguro'],
+                            pains: ['⏳ Processos de venda tradicionais lentos', '📉 Dificuldade em atingir o preço de reserva', '📊 Falta de ferramentas para gerenciar grandes volumes', '🚫 Risco de negociar com compradores pouco qualificados'],
+                            qualification: [
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: 'Volume de Desmobilização', situacao: '“Como sua construtora/agronegócio gerencia a venda de grandes volumes de máquinas usadas atualmente?”', problema: '“Quais os principais gargalos e perdas que vocês enfrentam ao desmobilizar esses ativos pesados?”', implicacao: '“Como a lentidão ou a falta de um canal eficiente impactam o capital de giro e a capacidade de novos investimentos da sua empresa?”', necessidade: '“Se você pudesse vender sua frota com agilidade, segurança e pelo melhor preço de mercado, que impacto direto isso teria no seu planejamento financeiro?”' },
+                                    { title: '📊 Visibilidade de Ativos', situacao: '“Como você monitora e controla o status de cada máquina no processo de desmobilização?”', problema: '“Qual o desafio em ter uma visão clara e em tempo real do seu inventário de máquinas à venda?”', implicacao: '“Como a falta de visibilidade pode atrasar vendas ou gerar custos adicionais de gestão?”', necessidade: '“Se você tivesse um dashboard centralizado para toda sua frota à venda, que controle e agilidade isso proporcionaria à sua operação?”' },
+                                    { title: '💰 Retorno sobre Ativo', situacao: '“Como você mede o ROI da sua frota de máquinas e busca otimizar esse retorno ao desmobilizá-las?”', problema: '“Qual a dificuldade em garantir que cada máquina vendida traga o máximo de retorno possível, considerando o investimento inicial e a depreciação?”', implicacao: '“Como a perda de valor na desmobilização afeta sua capacidade de reinvestir em novos equipamentos de alta performance?”', necessidade: '“Se você tivesse uma ferramenta que otimizasse o preço de venda das suas máquinas, garantindo o melhor ROI, que valor estratégico isso traria para a empresa?”' }
+                                ]},
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: 'Maximização de Valor', atencao: '“Grandes empresas perdem milhares com máquinas paradas ou vendidas abaixo do valor. Você está maximizando o retorno de seus ativos?”', interesse: '“A Arremaq conecta sua frota a um universo de compradores qualificados, gerando concorrência e o melhor preço para seus ativos.”', desejo: '“Imagine liberar seu capital rapidamente, com a certeza de ter feito o melhor negócio para sua empresa.”', acao: '“Pronto para transformar sua desmobilização em lucro? Agende uma conversa conosco.”' },
+                                    { title: '⏱️ Agilidade de Venda', atencao: '“A lentidão na venda de máquinas pesadas está impactando seu fluxo de caixa e a renovação da frota?”', interesse: '“Nossa plataforma agiliza todo o processo, do anúncio ao fechamento, garantindo vendas em tempo recorde.”', desejo: '“Tenha suas máquinas vendidas com a rapidez que sua operação exige, liberando capital para novos projetos.”', acao: '“Que tal uma demonstração de como aceleramos suas vendas?”' },
+                                    { title: '🛡️ Segurança nas Transações', atencao: '“Você se preocupa com a segurança e a transparência em negociações de alto valor de máquinas usadas?”', interesse: '“A Arremaq oferece um ambiente auditado e seguro, com todas as informações e etapas claras para sua proteção.”', desejo: '“Realize suas vendas com total tranquilidade, sabendo que cada transação é protegida e documentada.”', acao: '“Conheça nossos processos de segurança em detalhes em nossa plataforma.”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: 'Venda de Ativos', simples: '“Simplificamos a venda de seus ativos de alto valor, com um processo digital e claro.”', inestimavel: '“…iNestimável para quem precisa de eficiência e segurança ao negociar grandes volumes de máquinas…”', alinhar: '“…e se Alinha com sua meta de otimizar o fluxo de caixa e o retorno sobre o investimento em equipamentos.”', priorizar: '“Acelerar e otimizar a venda de seus equipamentos é uma Prioridade para a gestão de ativos da sua empresa?”' },
+                                    { title: '🌐 Alcance Nacional', simples: '“Sua máquina será anunciada para uma rede de compradores em todo o Brasil.”', inestimavel: '“…iNestimável para garantir que você atinja o público certo, onde quer que ele esteja…”', alinhar: '“…e se Alinha com a estratégia de expandir suas oportunidades de venda e otimizar o preço.”', priorizar: '“Ter um alcance de venda nacional para suas máquinas é uma Prioridade para a sua empresa?”' },
+                                    { title: '📈 Gestão Simplificada', simples: '“Gerenciar um grande volume de vendas de máquinas se torna fácil com nossa plataforma intuitiva.”', inestimavel: '“…iNestimável para otimizar o tempo da sua equipe e garantir que nenhuma oportunidade seja perdida…”', alinhar: '“…e se Alinha com o objetivo de ter total controle e visibilidade sobre o processo de desmobilização.”', priorizar: '“A simplificação da gestão das vendas é uma Prioridade para a sua área de ativos?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "Máquinas pesadas são complexas de vender online.", a: "Entendemos a complexidade. É por isso que a Arremaq simplifica e digitaliza cada etapa, com avaliações técnicas detalhadas e suporte especializado, garantindo uma transação segura e eficiente.", why: "Aborda a complexidade com a proposta de simplificação e suporte. Foca na segurança e eficiência do processo digitalizado.", focus: "Simplificação e Suporte." },
+                                { q: "Tenho medo de vender por menos do que vale.", a: "Nosso marketplace é projetado para maximizar o valor de seus ativos. A ampla rede de compradores qualificados gera concorrência, e as informações detalhadas garantem um preço justo e competitivo, superando as expectativas.", why: "Minimiza o medo da subvalorização. Destaca a competitividade do marketplace e a transparência de informações para garantir o melhor preço.", focus: "Maximização de Preço." },
+                                { q: "Já tenho um processo de desmobilização estabelecido.", a: "Ótimo! A Arremaq não visa substituir seu processo, mas complementá-lo, ampliando significativamente seu alcance de mercado e agilizando a negociação sem interromper suas operações diárias. Pense em nós como uma extensão poderosa do seu time.", why: "Valida o processo existente e se posiciona como um complemento poderoso, não um concorrente. Foca em ampliação de alcance e agilidade.", focus: "Complementaridade e Extensão de Equipe." },
+                                { q: "A burocracia de transferência de máquinas é um problema.", a: "Nosso time jurídico e de suporte cuida de toda a documentação e trâmites legais, desde a emissão de notas até a transferência. Você foca no seu negócio, nós cuidamos da burocracia.", why: "Oferece solução para o problema da burocracia. Garante que o cliente terá suporte especializado.", focus: "Suporte Burocrático." },
+                                { q: "Não consigo acompanhar o status de cada máquina na venda.", a: "Com a Arremaq, você tem um dashboard completo com o status de cada máquina em tempo real. Desde o anúncio até a venda final, toda a jornada é visível e controlável.", why: "Apresenta uma solução tecnológica (dashboard) para o problema de visibilidade e controle.", focus: "Visibilidade e Controle." },
+                                { q: "Minhas máquinas são de alto valor, a negociação é muito pessoal.", a: "Compreendo que transações de alto valor exigem confiança. A Arremaq oferece um ambiente digital que facilita a negociação, com a possibilidade de reuniões virtuais e toda a transparência necessária para que a decisão seja pessoal e segura.", why: "Reconhece a necessidade de um toque pessoal em negociações de alto valor e mostra como a plataforma suporta isso, adicionando transparência e segurança digital.", focus: "Confiança e Transparência Digital." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (O Titã da Desmobilização)", description: "José busca maximizar o valor e agilizar a venda de grandes frotas. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'José Teodoro', 'Gerente de Ativos (Grande Vendedor)') },
+                                '60': { title: "Jornada de 60 Dias (O Mestre da Rentabilidade)", description: "José busca eficiência e o melhor ROI para seus equipamentos. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'José Teodoro', 'Gerente de Ativos (Grande Vendedor)') },
+                                '90': { title: "Jornada de 90 Dias (O Inovador da Gestão)", description: "José busca novas estratégias e parcerias para longo prazo. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'José Teodoro', 'Gerente de Ativos (Grande Vendedor)') }
+                            }
+                        },
+                        {
+                            id: 'gabriel',
+                            name: 'Gabriel Nascimento',
+                            role: 'Gerente de Ativo (Máquinas)', // Cargo atualizado
+                            img: 'https://i.imgur.com/yBvPoGi.jpeg',
+                            description: 'Especialista técnico e comercial da Arremaq, conecta vendedores e compradores de forma eficiente e transparente, entendendo as nuances do mercado de equipamentos agrícolas e de construção.',
+                            objectives: ['📚 Educar o mercado', '🛠️ Avaliações técnicas precisas', '🤝 Negociações seguras e transparentes', '🌐 Expandir rede de usuários', '📈 Aumentar volume de transações'],
+                            pains: ['🌫️ Falta de transparência', '🤷 Dificuldade em encontrar compradores/vendedores qualificados', '⏳ Processos demorados', '🚫 Risco de informações imprecisas', '🌍 Alcance geográfico limitado'],
+                            qualification: [
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: 'Mercado de Máquinas', atencao: '“Você está perdendo tempo e dinheiro com negociações de máquinas pesadas complexas e sem transparência?”', interesse: '“A Arremaq é a plataforma que conecta os melhores vendedores e compradores, com avaliações técnicas detalhadas e total segurança.”', desejo: '“Imagine fechar negócios de máquinas rapidamente, com confiança e obtendo o melhor preço de mercado.”', acao: '“Pronto para revolucionar suas negociações de máquinas? Clique e veja a Arremaq em ação!”' },
+                                    { title: '🤝 Conexão Certa', atencao: '“Seus clientes e prospects estão realmente onde você os procura, ou você está perdendo oportunidades valiosas?”', interesse: '“Nossa rede especializada garante que você conecte o vendedor certo com o comprador ideal, acelerando o ciclo de vendas.”', desejo: '“Tenha acesso a um funil de vendas mais qualificado, com menos esforço e maior taxa de conversão.”', acao: '“Vamos mapear juntos como nossa plataforma pode otimizar suas conexões de negócios?”' },
+                                    { title: '📈 Crescimento do Volume', atencao: '“Você está com dificuldade de aumentar o volume de máquinas transacionadas e escalar seus resultados?”', interesse: '“A Arremaq oferece as ferramentas e o alcance para que você e seus clientes negociem mais máquinas, em menos tempo.”', desejo: '“Transforme o potencial em realidade, expandindo seus negócios e alcançando novas metas de volume.”', acao: '“Descubra como a Arremaq pode ser a alavanca para o seu crescimento.”' }
+                                ]},
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: 'Qualificação de Leads', situacao: '“Como você identifica hoje os compradores ou vendedores de máquinas que realmente estão qualificados e prontos para negociar?”', problema: '“Quais os desafios em filtrar e focar nos leads com maior potencial de fechamento, evitando perda de tempo com curiosos?”', implicacao: '“Como a falta de um processo de qualificação eficiente impacta seu ciclo de vendas e a produtividade da sua equipe?”', necessidade: '“Se você pudesse contar com uma plataforma que pré-qualifica as partes, que necessidade de agilidade e assertividade isso resolveria?”' },
+                                    { title: '🛠️ Processo de Avaliação', situacao: '“Como vocês garantem a precisão das avaliações técnicas das máquinas que são negociadas?”', problema: '“Quais os maiores desafios em obter laudos e informações padronizadas e confiáveis sobre o estado dos equipamentos?”', implicacao: '“Como a falta de uma avaliação precisa pode gerar desconfiança e atrasar ou até inviabilizar um negócio?”', necessidade: '“Se você tivesse uma ferramenta que padronizasse e garantisse a precisão das avaliações, que segurança isso traria para suas negociações?”' },
+                                    { title: '📚 Educação do Mercado', situacao: '“Como você e sua equipe educam o mercado e os potenciais clientes sobre as vantagens de negociar máquinas com transparência e segurança?”', problema: '“Qual a dificuldade em quebrar objeções e convencer clientes sobre a importância da digitalização e de processos mais formais?”', implicacao: '“Como a falta de conhecimento do mercado pode limitar o número de negócios e a adoção da sua plataforma?”', necessidade: '“Se houvesse um conteúdo e uma narrativa padronizada para educar o mercado, que necessidade isso resolveria para sua equipe de vendas?”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: 'Credibilidade e Confiança', simples: '“Nossa plataforma oferece processos simplificados e informações verificadas, garantindo credibilidade.”', inestimavel: '“…iNestimável para construir confiança e acelerar a decisão de compra ou venda de máquinas…”', alinhar: '“…e se Alinha com a necessidade de mercado por mais transparência e profissionalismo na negociação.”', priorizar: '“Ter um parceiro que garante segurança e transparência nas negociações de máquinas é uma Prioridade para você e seus clientes?”' },
+                                    { title: '🌐 Expansão de Rede', simples: '“Conecte-se facilmente a novos vendedores e compradores de máquinas em todo o país.”', inestimavel: '“…iNestimável para expandir sua atuação e encontrar oportunidades onde antes não era possível…”', alinhar: '“…e se Alinha com o objetivo de crescimento e ampliação do seu market share no segmento de máquinas pesadas.”', priorizar: '“A expansão da sua rede de contatos e negócios é uma Prioridade para a Arremaq agora?”' },
+                                    { title: '⏱️ Otimização de Processos', simples: '“Simplifique a jornada de compra e venda de máquinas através de nossa plataforma digital.”', inestimavel: '“…iNestimável para reduzir o tempo gasto em negociações e aumentar a produtividade da equipe…”', alinhar: '“…e se Alinha com a busca por maior eficiência operacional e resultados mais rápidos.”', priorizar: '“A otimização dos processos de negociação de máquinas é uma Prioridade para a Arremaq e seus parceiros?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "O mercado de máquinas é muito nichado.", a: "Exatamente! Por isso, a Arremaq se especializa nesse nicho, centralizando e trazendo os compradores e vendedores certos para você, de todo o Brasil, onde antes seria impossível alcançá-los.", why: "Transforma a objeção de nicho em vantagem, destacando a especialização da plataforma e o alcance ampliado.", focus: "Especialização e Alcance Nacional." },
+                                { q: "Não sou muito de tecnologia.", a: "A plataforma da Arremaq foi feita para ser intuitiva e fácil de usar, mesmo para quem não tem familiaridade com tecnologia. Além disso, nosso suporte é especializado e te guia em cada passo, garantindo que você aproveite ao máximo a ferramenta.", why: "Minimiza a barreira tecnológica. Destaca a usabilidade e o suporte dedicado como facilitadores.", focus: "Usabilidade e Suporte." },
+                                { q: "Prefiro negociar direto.", a: "Compreendo. Mas a Arremaq otimiza sua negociação direta, oferecendo um ambiente seguro, transparente e com um alcance de mercado que você não conseguiria sozinho, aumentando suas chances de um negócio lucrativo.", why: "Valida a preferência do cliente, mas mostra como a plataforma aprimora a negociação direta, adicionando segurança, transparência e alcance.", focus: "Otimização da Negociação Direta." },
+                                { q: "Como vocês garantem a qualidade das máquinas anunciadas?", a: "Temos um rigoroso processo de avaliação técnica, com laudos detalhados e fotos que comprovam o estado do equipamento. Nossos especialistas verificam cada item para garantir a confiança na negociação.", why: "Explica o processo de validação de qualidade, reforçando a confiança e transparência.", focus: "Qualidade e Transparência." },
+                                { q: "Não sei como usar a plataforma para atrair mais clientes.", a: "Nosso time de marketing e vendas te oferece todo o suporte para otimizar seus anúncios e campanhas dentro da plataforma. Geramos leads qualificados e te ajudamos a convertê-los em vendas.", why: "Oferece suporte em marketing e vendas. Mostra que a plataforma não é apenas uma ferramenta, mas um parceiro estratégico.", focus: "Suporte de Marketing e Vendas." },
+                                { q: "Minha reputação já atrai clientes, por que mudar?", a: "Sua reputação é um ativo valioso. Pense na Arremaq como uma forma de amplificar essa reputação, atingindo um público ainda maior e mais qualificado, sem comprometer a confiança que você já construiu.", why: "Valoriza a reputação existente e posiciona a plataforma como um amplificador de alcance e credibilidade.", focus: "Amplificação de Reputação." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (O Mentor Digital)", description: "Gabriel busca engajar novos usuários e demonstrar o valor da Arremaq. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'Gabriel Nascimento', 'Consultor de Negócios Arremaq') },
+                                '60': { title: "Jornada de 60 Dias (O Educador de Mercado)", description: "Gabriel busca educar sobre as vantagens da digitalização. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'Gabriel Nascimento', 'Consultor de Negócios Arremaq') },
+                                '90': { title: "Jornada de 90 Dias (O Construtor de Relações)", description: "Gabriel busca construir confiança e parcerias de longo prazo. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'Gabriel Nascimento', 'Consultor de Negócios Arremaq') }
+                            }
+                        },
+                        {
+                            id: 'vinicius',
+                            name: 'Vinicius Rocha',
+                            role: 'Comprador/Vendedor de Máquinas',
+                            img: 'https://i.imgur.com/6V891Et.jpeg',
+                            description: 'Proprietário/gerente de uma empresa (ex: construtora, agronegócio, locadora de equipamentos) que precisa negociar máquinas pesadas usadas de forma eficiente, seja para vender ativos ociosos ou adquirir equipamentos para seus projetos.',
+                            objectives: ['💸 Vender máquinas usadas pelo melhor preço possível e rapidamente.', '🛒 Comprar máquinas usadas de qualidade, com histórico conhecido e preço justo.', '⏱️ Reduzir o tempo e a complexidade envolvidos nas negociações de máquinas.', '🌐 Encontrar um mercado amplo e confiável para seus ativos, seja para compra ou venda.', '⚙️ Otimizar a renovação ou gestão da sua frota de máquinas.'],
+                            pains: ['📉 Dificuldade em encontrar compradores qualificados para máquinas específicas ou de nicho.', '🤔 Receio de maus negócios por falta de informação técnica detalhada ou transparência no histórico do equipamento.', '⏳ Processos demorados que imobilizam capital (máquinas paradas) ou atrasam projetos (demora na aquisição).', '🚫 Falta de um canal centralizado, confiável e com alcance nacional para negociar máquinas.', '🛠️ Custos elevados com manutenção de máquinas ociosas ou ineficientes.'],
+                            qualification: [
+                                { method: 'SPIN Selling', description: 'Foca em fazer as perguntas certas para o cliente perceber o valor.', examples: [
+                                    { title: 'Gestão de Equipamentos', situacao: '“Como sua empresa encontra e vende máquinas pesadas usadas atualmente?”', problema: '“Quais os maiores desafios que você enfrenta ao tentar conseguir o melhor preço ou a máquina ideal, com total confiança?”', implicacao: '“Como a demora nas negociações ou um mau negócio implica nos seus projetos e no seu capital de investimento?”', necessidade: '“Se você tivesse um canal centralizado e confiável para todas as suas necessidades de máquinas, que diferença estratégica isso faria para sua operação?”' },
+                                    { title: '🛠️ Qualidade e Confiabilidade', situacao: '“Como você verifica a condição real e a confiabilidade de uma máquina usada antes de comprá-la?”', problema: '“Qual o risco de adquirir uma máquina com problemas ocultos que podem gerar altos custos de manutenção e paralisação?”', implicacao: '“Como isso afeta a produtividade dos seus projetos e o orçamento da sua empresa?”', necessidade: '“Se você tivesse acesso a laudos técnicos detalhados e uma garantia de procedência, que segurança isso traria para suas aquisições?”' },
+                                    { title: '🌐 Acesso ao Mercado', situacao: '“Onde você busca hoje máquinas pesadas para compra ou quem você contacta para vender seus ativos ociosos?”', problema: '“Qual a dificuldade em encontrar um mercado amplo e qualificado, especialmente para máquinas específicas ou de alto valor?”', implicacao: '“Como a limitação de opções de compra ou venda afeta sua capacidade de otimizar sua frota e liberar capital?”', necessidade: '“Se você tivesse um marketplace nacional de máquinas pesadas, que oportunidades de negócio isso abriria para sua empresa?”' }
+                                ]},
+                                { method: 'AIDA', description: 'Modelo clássico que descreve as etapas cognitivas da compra.', examples: [
+                                    { title: 'Segurança na Compra/Venda', atencao: '“Negociar máquinas pesadas pode ser um risco. Você está seguro das informações e do valor do equipamento?”', interesse: '“A Arremaq garante avaliações técnicas detalhadas e padronizadas, com total transparência e segurança.”', desejo: '“Imagine fechar negócios com a confiança de que você está sempre obtendo o melhor valor e evitando surpresas.”', acao: '“Pronto para experimentar um novo nível de segurança e transparência? Conheça a Arremaq!”' },
+                                    { title: '⏱️ Agilidade para Projetos', atencao: '“A lentidão na aquisição ou venda de máquinas está atrasando seus projetos e gerando custos extras?”', interesse: '“Nossa plataforma acelera a negociação, permitindo que você tenha a máquina certa, no tempo certo, para seus prazos.”', desejo: '“Mantenha seus projetos em dia, sem paradas desnecessárias, e com o equipamento ideal em mãos rapidamente.”', acao: '“Descubra como nossa agilidade pode beneficiar o cronograma dos seus projetos!”' },
+                                    { title: '💸 Otimização Financeira', atencao: '“Suas máquinas paradas estão imobilizando capital e gerando depreciação desnecessária?”', interesse: '“A Arremaq otimiza a venda de ativos ociosos, liberando capital rapidamente e garantindo o melhor retorno.”', desejo: '“Transforme máquinas paradas em capital de giro, otimizando seu fluxo de caixa e sua capacidade de investimento.”', acao: '“Vamos analisar o potencial de otimização financeira dos seus ativos com a Arremaq?”' }
+                                ]},
+                                { method: 'SNAP Selling', description: 'Focado em como clientes decidem: Simplifique, seja iNestimável, Alinhe-se e defina Prioridades.', examples: [
+                                    { title: 'Redução de Custos e Tempo', simples: '“Nossa plataforma simplifica a negociação de máquinas, eliminando burocracia e acelerando processos.”', inestimavel: '“…iNestimável para quem busca reduzir custos com máquinas paradas e otimizar o tempo de sua equipe…”', alinhar: '“…e se Alinha com sua busca por eficiência e rentabilidade na gestão de ativos.”', priorizar: '“A redução de custos e a otimização do tempo na negociação de máquinas é uma Prioridade clara para sua empresa?”' },
+                                    { title: '⚙️ Otimização da Frota', simples: '“Gerenciar a renovação e venda da sua frota de máquinas é mais fácil com nosso sistema integrado.”', inestimavel: '“…iNestimável para garantir que sua frota esteja sempre moderna, eficiente e com alta performance…”', alinhar: '“…e se Alinha com a estratégia de manter a competitividade e a produtividade da sua empresa no agronegócio ou construção.”', priorizar: '“A otimização contínua da sua frota é uma Prioridade estratégica para o seu negócio?”' },
+                                    { title: '🤝 Confiabilidade na Origem', simples: '“Compre e venda com a certeza da procedência e qualidade das máquinas.”', inestimavel: '“…iNestimável para evitar problemas futuros e construir uma reputação sólida no mercado…”', alinhar: '“…e se Alinha com a necessidade de ter parceiros de confiança e transações seguras no setor de máquinas pesadas.”', priorizar: '“A confiabilidade e a segurança nas suas transações de máquinas são uma Prioridade máxima para você?”' }
+                                ]}
+                            ],
+                            objections: [
+                                { q: "Tenho medo de comprar máquina com defeito online.", a: "Na Arremaq, cada máquina passa por avaliação técnica rigorosa e detalhada, com fotos, vídeos e laudos de peritos, minimizando drasticamente seu risco e aumentando sua confiança na compra.", why: "Aborda a preocupação com a qualidade e risco. Destaca o processo de avaliação técnica e a transparência como garantia.", focus: "Segurança e Qualidade na Compra." },
+                                { q: "Os preços online são incertos.", a: "Nossa plataforma promove um ambiente de concorrência saudável entre compradores e vendedores, buscando o preço justo de mercado e maximizando seu retorno ou economia, com total transparência nos valores.", why: "Minimiza a incerteza do preço. Destaca a competição entre compradores e a transparência para garantir o melhor valor.", focus: "Transparência de Preço." },
+                                { q: "Como faço para transportar a máquina após a compra?", a: "Oferecemos suporte logístico completo. Orientamos sobre as melhores opções de transporte e parceiros, tornando a transação completa e sem dores de cabeça para você, desde a negociação até a entrega.", why: "Oferece uma solução para o desafio logístico. Garante comodidade e facilidade no processo pós-compra.", focus: "Solução Logística." },
+                                { q: "O processo de negociação de máquinas é muito demorado.", a: "Entendo, e é exatamente isso que a Arremaq resolve. Digitalizamos e agilizamos cada etapa da negociação, desde a vistoria até o fechamento, reduzindo seu tempo e imobilização de capital.", why: "Reconhece a dor da lentidão e apresenta a digitalização como solução para agilizar o processo.", focus: "Agilidade na Negociação." },
+                                { q: "Minha empresa não tem tempo para gerenciar a plataforma.", a: "Nossa plataforma foi projetada para ser intuitiva e demandar o mínimo de tempo. Além disso, nosso suporte dedicado ajuda em tudo que precisar, liberando sua equipe para as tarefas estratégicas.", why: "Minimiza o esforço de gestão da plataforma. Destaca a usabilidade e o suporte para economizar tempo da equipe.", focus: "Otimização de Tempo da Equipe." },
+                                { q: "Preferimos manter as negociações em nossa rede atual de contatos.", a: "Sua rede é valiosa. A Arremaq funciona como uma expansão inteligente dessa rede, conectando você a milhares de contatos adicionais qualificados em todo o país, sem que você precise sair do seu círculo de confiança.", why: "Valoriza a rede existente e posiciona a plataforma como um amplificador de oportunidades, sem descaracterizar o modelo preferido.", focus: "Expansão de Rede Qualificada." }
+                            ],
+                            cadences: {
+                                '30': { title: "Jornada de 30 Dias (O Agente de Oportunidades)", description: "Vinicius busca oportunidades rápidas e seguras para comprar/vender. Mínimo de 20 atividades.", steps: generateCadenceSteps(30, 'Vinicius Rocha', 'Comprador/Vendedor de Máquinas') },
+                                '60': { title: "Jornada de 60 Dias (O Otimizador de Ativos)", description: "Vinicius busca otimizar a gestão e renovação de sua frota. Mínimo de 20 atividades.", steps: generateCadenceSteps(60, 'Vinicius Rocha', 'Comprador/Vendedor de Máquinas') },
+                                '90': { title: "Jornada de 90 Dias (O Mestre da Logística)", description: "Vinicius busca soluções completas, incluindo transporte e pós-venda. Mínimo de 20 atividades.", steps: generateCadenceSteps(90, 'Vinicius Rocha', 'Comprador/Vendedor de Máquinas') }
+                            }
+                        }
+                    ]
+                }
+            };
+            
+            // ===================================================================================
+            // ESTADO E LÓGICA DE NAVEGAÇÃO
+            // ===================================================================================
+            
+            let activeCategory = 'autoarremate_brand'; // Categoria de persona ativa (autoarremate_brand, arremaq_brand)
+            let activePersonaId = null; // ID da persona ativa (null se estiver na visão de categoria)
+            let activePersonaView = 'overview'; // Visão ativa dentro de uma persona (overview, qualification, cadence-30, etc.)
+
+            const personaCategoryNav = document.getElementById('persona-category-nav');
+            const contentAreaAceleracao = document.getElementById('content-area-aceleracao');
+
+            // Função para buscar os dados de uma persona específica
+            function getPersonaData(personaId) {
+                for (const categoryKey in playbookData) {
+                    const category = playbookData[categoryKey];
+                    const foundPersona = category.personas.find(p => p.id === personaId);
+                    if (foundPersona) {
+                        return { persona: foundPersona, brandColor: category.brandColor };
+                    }
+                }
+                return null;
+            }
+
+            // Renderiza a visão principal das categorias e personas clicáveis
+            function renderCategoryView(categoryToRenderId) {
+                activeCategory = categoryToRenderId;
+                activePersonaId = null; // Reseta a persona ativa
+                activePersonaView = 'overview'; // Volta para a visão geral
+
+                const categoryData = playbookData[activeCategory];
+                
+                // Atualiza o estilo das abas de categoria
+                personaCategoryNav.querySelectorAll('.category-tab').forEach(t => {
+                    t.classList.remove('active', 'bg-autoarremate', 'bg-arremaq', 'text-white', 'shadow-lg');
+                    t.classList.add('bg-white', 'text-stone-700', 'hover:bg-stone-50');
+                    if(t.dataset.category === activeCategory) {
+                        t.classList.add('active', `bg-${categoryData.brandColor}`, 'text-white', 'shadow-lg');
+                        t.classList.remove('bg-white', 'text-stone-700');
+                    }
+                });
+
+                // Renderiza o ICP e os cartões clicáveis das personas
+                const icpFeaturesHtml = categoryData.icp.features.map(f => `
+                    <div class="icp-features-card">
+                        <span class="emoji">${f.emoji}</span>
+                        <div>
+                            <strong>${f.title}:</strong>
+                            <span>${f.text}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                const icpHtml = `
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="font-sora text-2xl font-bold text-center mb-4">📜 Perfil de Cliente Ideal (ICP) - ${categoryData.title}</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${icpFeaturesHtml}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-sora text-2xl font-bold text-center mb-6">🎭 Personas Detalhadas</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${categoryData.personas.map(p => `
+                                    <div class="persona-clickable-card bg-white border border-stone-200 rounded-2xl p-6 shadow-sm flex flex-col items-center text-center" data-persona-id="${p.id}">
+                                        <img src="${p.img}" alt="Foto de ${p.name}" class="w-24 h-24 rounded-full-icon mb-4 border-4 border-white shadow-md" onerror="this.onerror=null; this.src='https://placehold.co/96x96/E2E8F0/2D3748?text=${p.name.charAt(0)}';">
+                                        <h4 class="font-sora text-xl font-bold text-stone-900">${p.name}</h4>
+                                        <p class="font-semibold text-${categoryData.brandColor} mb-2">${p.role}</p>
+                                        <p class="text-sm text-stone-600">${p.description}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contentAreaAceleracao.innerHTML = `<div class="fade-in">${icpHtml}</div>`;
+
+                // Adiciona listeners aos novos cartões de persona
+                contentAreaAceleracao.querySelectorAll('.persona-clickable-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const personaId = e.currentTarget.dataset.personaId;
+                        renderPersonaDetailView(personaId, 'overview'); // Abre a visão detalhada da persona na Visão Geral
+                    });
+                });
+            }
+
+            // Renderiza a visão detalhada de uma persona específica
+            function renderPersonaDetailView(personaId, subViewId) {
+                activePersonaId = personaId;
+                activePersonaView = subViewId;
+
+                const personaInfo = getPersonaData(personaId);
+                if (!personaInfo) {
+                    contentAreaAceleracao.innerHTML = `<p class="text-center text-red-500">Persona não encontrada.</p>`;
+                    return;
+                }
+                const persona = personaInfo.persona;
+                const brandColorClass = personaInfo.brandColor;
+
+                // Constrói as abas secundárias da persona
+                const cadences = persona.cadences || {};
+                const cadencesTabsHtml = Object.keys(cadences).sort((a,b) => parseInt(a)-parseInt(b)).map(key =>
+                    `<button data-view="cadence-${key}" class="view-tab flex-shrink-0 font-semibold py-2 px-4 rounded-xl">🏰 Jornada ${key} Dias</button>`
+                ).join('');
+
+                const detailViewHtml = `
+                    <button id="backToCategoriesBtn" class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold py-2 px-4 rounded-lg mb-6 flex items-center gap-2 transition-colors">
+                        <i class="fas fa-arrow-left"></i> Voltar para Categorias
+                    </button>
+                    <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8">
+                        <div class="flex items-center mb-6 pb-4 border-b border-stone-200">
+                            <img src="${persona.img}" alt="Foto de ${persona.name}" class="w-20 h-20 rounded-full-icon mr-4 border-4 border-${brandColorClass} shadow-md" onerror="this.onerror=null; this.src='https://placehold.co/80x80/E2E8F0/2D3748?text=${persona.name.charAt(0)}';">
+                            <div>
+                                <h3 class="font-sora text-3xl font-bold text-stone-900">${persona.name}</h3>
+                                <p class="text-lg font-semibold text-${brandColorClass}">${persona.role}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-center items-center gap-2 border-b-2 border-stone-200 pb-4 mb-6 text-sm md:text-base" id="persona-detail-nav">
+                            <button data-view="overview" class="view-tab active flex-shrink-0 font-semibold py-2 px-4 rounded-xl">🗺️ Visão Geral</button>
+                            <button data-view="qualification" class="view-tab flex-shrink-0 font-semibold py-2 px-4 rounded-xl">⚔️ Persuasão</button>
+                            ${cadencesTabsHtml}
+                            <button data-view="objections" class="view-tab flex-shrink-0 font-semibold py-2 px-4 rounded-xl">🛡️ Objeções</button>
+                            <button data-view="ai_assistant" class="view-tab flex-shrink-0 font-semibold py-2 px-4 rounded-xl flex items-center gap-2"><i class="fas fa-magic"></i> Assistente IA</button>
+                        </div>
+                        <div id="persona-sub-content" class="mt-6">
+                            ${getPersonaSubContent(persona, brandColorClass, activePersonaView)}
+                        </div>
+                    </div>
+                `;
+                contentAreaAceleracao.innerHTML = `<div class="fade-in">${detailViewHtml}</div>`;
+
+                // Ativa a aba secundária correta
+                contentAreaAceleracao.querySelectorAll('#persona-detail-nav .view-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.view === subViewId) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                // Adiciona listeners para as abas secundárias
+                contentAreaAceleracao.querySelector('#persona-detail-nav').addEventListener('click', (e) => {
+                    const tab = e.target.closest('.view-tab');
+                    if (tab) {
+                        if (tab.dataset.view === 'ai_assistant') {
+                            openAiModal(persona.name); // Passa o nome da persona para o modal de IA
+                            // Mantém a aba atual como ativa se o modal de IA for aberto
+                            contentAreaAceleracao.querySelector(`#persona-detail-nav .view-tab[data-view="${activePersonaView}"]`).classList.add('active');
+                            return;
+                        }
+                        renderPersonaDetailView(personaId, tab.dataset.view);
+                    }
+                });
+
+                // Listener para o botão de voltar
+                document.getElementById('backToCategoriesBtn').addEventListener('click', () => {
+                    renderCategoryView(activeCategory); // Volta para a visão da categoria atual
+                });
+            }
+
+            // Retorna o HTML para a sub-visão da persona
+            function getPersonaSubContent(persona, brandColorClass, subViewId) {
+                // Reset usedEmojis for each sub-content rendering to ensure variety within sections
+                usedEmojis = []; 
+
+                if (subViewId === 'overview') {
+                    return `
+                        <div class="persona-profile-card bg-stone-50 border border-stone-200 rounded-xl p-6 mb-6">
+                            <p class="italic text-stone-600 mb-4">${persona.description}</p>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div><h5 class="font-semibold mb-2">🎯 Objetivos</h5><ul class="space-y-1 text-sm">${persona.objectives.map(o => `<li data-emoji="${getUniqueEmoji()}">${o}</li>`).join('')}</ul></div>
+                                <div><h5 class="font-semibold mb-2">😥 Dores</h5><ul class="space-y-1 text-sm">${persona.pains.map(pain => `<li data-emoji="${getUniqueEmoji()}">${pain}</li>`).join('')}</ul></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                if (subViewId === 'qualification') {
+                    if (!persona.qualification || persona.qualification.length === 0) return '<p class="text-center text-stone-500">Nenhuma metodologia de persuasão cadastrada para esta persona.</p>';
+                    return `
+                        <h3 class="font-sora text-2xl font-bold mb-1">⚔️ Arsenal de Persuasão para ${persona.name}</h3>
+                        <p class="text-stone-600 mb-6">Use estas metodologias para descobrir dores e necessidades específicas.</p>
+                        <div class="space-y-4">
+                            ${persona.qualification.map(q => `<details class="bg-stone-50 rounded-xl border"><summary class="flex justify-between items-center p-4 font-semibold text-lg"><span>${q.method}</span><i class="fas fa-chevron-right arrow-icon"></i></summary><div class="p-4 border-t bg-white"><p class="italic mb-4">${q.description}</p><div class="space-y-3">${q.examples.map(ex => `<div class="p-3 border rounded-lg"><p class="font-semibold">${getUniqueEmoji()} ${ex.title}</p><div class="text-sm mt-2 space-y-1">${Object.entries(ex).filter(([k])=>k!=='title').map(([k,v])=>`<p data-emoji="${getUniqueEmoji()}"><strong class="capitalize text-sky-700">${k}:</strong> ${v}</p>`).join('')}</div></div>`).join('')}</div></div></details>`).join('')}
+                        </div>
+                    `;
+                }
+                if (subViewId.startsWith('cadence-')) {
+                    const key = subViewId.split('-')[1];
+                    const cadence = persona.cadences?.[key];
+                    if (!cadence) return '<p class="text-center text-stone-500">Nenhuma cadência encontrada para este período para esta persona.</p>';
+                    return `
+                        <h3 class="font-sora text-2xl font-bold mb-1">🏰 ${cadence.title} para ${persona.name}</h3>
+                        <p class="text-stone-600 mb-6">${cadence.description}</p>
+                        <div class="overflow-x-auto">
+                            <table class="cadencia-table">
+                                <thead><tr><th>DIA</th><th>CANAL</th><th>FASE</th><th>OBJETIVO</th><th>SCRIPT/CRM/AUTOMAÇÃO/MÉTRICAS</th></tr></thead>
+                                <tbody>${cadence.steps.map(s=>`<tr><td>${s.day + 1}</td><td>${getUniqueEmoji()} ${s.channel}</td><td>${getUniqueEmoji()} ${s.phase}</td><td>${getUniqueEmoji()} ${s.objective}</td><td><pre><strong>${getUniqueEmoji()} Script:</strong> ${s.script}\n<strong>${getUniqueEmoji()} CRM:</strong> ${s.crm}\n<strong>${getUniqueEmoji()} Automação:</strong> ${s.automacao}\n<strong>${getUniqueEmoji()} Métricas:</strong> ${s.metricas}</pre></td></tr>`).join('')}</tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                if (subViewId === 'objections') {
+                    if (!persona.objections || persona.objections.length === 0) return '<p class="text-center text-stone-500">Nenhuma objeção cadastrada para esta persona.</p>';
+                    return `
+                        <h3 class="font-sora text-2xl font-bold mb-1">🛡️ Escudo Contra Objeções para ${persona.name}</h3>
+                        <p class="text-stone-600 mb-6">Esteja preparado para os desafios mais comuns específicos para esta persona.</p>
+                        <div class="space-y-3">
+                            ${persona.objections.map(o => `
+                                <details class="bg-stone-50 rounded-xl border">
+                                    <summary class="flex justify-between items-center p-4 font-semibold">
+                                        <span>${getUniqueEmoji()} ${o.q}</span><i class="fas fa-chevron-right arrow-icon"></i>
+                                    </summary>
+                                    <div class="bg-white p-4 border-t space-y-2">
+                                        <p data-emoji="${getUniqueEmoji()}"><strong>Resposta:</strong> ${o.a}</p>
+                                        <p data-emoji="${getUniqueEmoji()}"><strong>Por que esta resposta:</strong> ${o.why}</p>
+                                        <p data-emoji="${getUniqueEmoji()}"><strong>Foco Principal:</strong> ${o.focus}</p>
+                                    </div>
+                                </details>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                return '<p class="text-center text-stone-500">Conteúdo não encontrado para esta sub-visão.</p>';
+            }
+
+            // --- Event Listeners para a Navegação Principal ---
+            personaCategoryNav.addEventListener('click', (e) => {
+                const tab = e.target.closest('.category-tab');
+                if (tab) {
+                    renderCategoryView(tab.dataset.category);
+                }
+            });
+
+            // =============================================
+            // AI MODAL LOGIC
+            // =============================================
+            const aiModalOverlay = document.getElementById('ai-modal-overlay');
+            const aiModalClose = document.getElementById('ai-modal-close');
+            const aiGenerateBtn = document.getElementById('ai-generate-btn');
+            const aiPromptInput = document.getElementById('ai-prompt-input');
+            const aiResultText = document.getElementById('ai-result-text');
+            const aiLoader = document.getElementById('ai-loader');
+            const aiInitialMessage = document.getElementById('ai-initial-message');
+            const copyBtn = document.getElementById('copy-ai-result-btn');
+            const aiModalTitle = document.getElementById('ai-modal-title');
+
+            function openAiModal(personaName = null) {
+                aiModalOverlay.classList.remove('hidden');
+                aiModalOverlay.classList.add('flex');
+                if (personaName) {
+                    aiModalTitle.textContent = `✨ Assistente de Vendas IA para ${personaName}`;
+                    aiPromptInput.placeholder = `Ex: Preciso de um e-mail de primeiro contato para o ${personaName}, focando na dor de...`;
+                } else {
+                    aiModalTitle.textContent = `✨ Assistente de Vendas IA`;
+                    aiPromptInput.placeholder = `Ex: Preciso de um e-mail de primeiro contato, focando na dor de...`;
+                }
+                aiInitialMessage.classList.remove('hidden');
+                aiLoader.classList.add('hidden');
+                aiResultText.classList.add('hidden');
+                aiResultText.innerHTML = '';
+                copyBtn.disabled = true;
+                aiPromptInput.value = '';
+            }
+            function closeAiModal() {
+                aiModalOverlay.classList.add('hidden');
+                aiModalOverlay.classList.remove('flex');
+            }
+            
+            async function generateAiContent() {
+                const prompt = aiPromptInput.value;
+                if (!prompt) return;
+                
+                aiLoader.classList.remove('hidden');
+                aiInitialMessage.classList.add('hidden');
+                aiResultText.classList.add('hidden');
+                copyBtn.disabled = true;
+
+                // SIMULATED API CALL
+                await new Promise(resolve => setTimeout(resolve, 1500)); 
+                
+                // Fetch the specific persona data for AI context
+                const personaInfo = getPersonaData(activePersonaId);
+                const personaNameForAI = personaInfo ? personaInfo.persona.name : "cliente";
+                
+                const exampleResponse = `Com base na persona de **${personaNameForAI}**, aqui está uma sugestão gerada pela IA:\n\n**Assunto:** Uma forma estratégica para abordar ${personaNameForAI} sobre [${prompt.match(/para o (.*?), focando na dor de (.*?)\.?$/)?.[2] || 'sua dor principal'}].\n\nPrezado(a) [Nome do Cliente],\n\nIdentificamos uma oportunidade em relação a [reafirmar a dor mencionada no prompt].\n\nAcreditamos que nossa solução pode oferecer [Benefício Específico relacionado à dor].\n\nGostaria de agendar uma breve conversa de 15 minutos para explorarmos como podemos otimizar [área de dor do cliente] em sua operação?\n\nAtenciosamente,\n[Seu Nome]`;
+                
+                aiLoader.classList.add('hidden');
+                aiResultText.innerHTML = exampleResponse.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                aiResultText.classList.remove('hidden');
+                copyBtn.disabled = false;
+            }
+
+            aiGenerateBtn.addEventListener('click', generateAiContent);
+            aiModalClose.addEventListener('click', closeAiModal);
+            copyBtn.addEventListener('click', () => {
+                // Use a temporary textarea to copy text to clipboard to preserve formatting
+                const textArea = document.createElement("textarea");
+                textArea.value = aiResultText.innerText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copyBtn.innerText = 'Copiado!';
+                    setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copiar'; }, 2000);
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                }
+                document.body.removeChild(textArea);
+            });
+            
+            // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+            renderCategoryView('autoarremate_brand'); // Inicia com a visão da categoria 'autoarremate_brand'
+        });
+    </script>
+</body>
+</html>
